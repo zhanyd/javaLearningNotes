@@ -11,6 +11,9 @@ public class Exercises02 {
 		
 		System.out.println("a>>1: " + (a>>1));
 		System.out.println("a>>>1: " + (a>>>1));
+		
+		System.out.println(Integer.toBinaryString(1 << 13));
+		System.out.println(1 << 13);
 	}
 
 }
