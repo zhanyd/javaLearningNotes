@@ -31,8 +31,9 @@ public class Exercises03 {
 	  * @throws Exception
 	  */
 	 public static void writeToBufferedWriter(String filename) throws Exception{
-		 try(FileWriter reader = new FileWriter(filename);
-	        BufferedWriter bufferedWrite = new BufferedWriter(reader)){
+		 try(FileWriter writer = new FileWriter(filename);
+	        BufferedWriter bufferedWrite = new BufferedWriter(writer)
+		 ){
 	        	Random random = new Random();
 	 	        int count = 10_000_000;
 	 	        char[] name = new char[5];
