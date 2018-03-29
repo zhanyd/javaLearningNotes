@@ -16,3 +16,20 @@ Stream.of("d2", "a2", "b1", "b3", "c")
     })
     .forEach(s -> System.out.println("forEach: " + s));
 ```
+输出
+```
+filter: d2
+forEach: d2
+filter: a2
+forEach: a2
+filter: b1
+forEach: b1
+filter: b3
+forEach: b3
+filter: c
+forEach: c
+```
+filter属于中间操作（Intermediate），forEach属于终结操作（Termediate），Intermediate操作是lazy(惰性求值)的，只有在Terminal操作执行时，才会一次性执行。所以filter和forEach会交替执行。
+
+## 3. 用Stream的API实现第四题的结果，其中增加一个过滤条件，即年薪大于10万的才被累加，分别用ParellStream与普通Stream来运算，看看效果的差距
+
