@@ -16,8 +16,10 @@ JVM里的几个Happens-before约定:
 
 
 ## 2.不依赖任何的同步机制（syncronized ,lock），有几种方式能实现多个线程共享变量之间的happens-before方式
-1. volatile
-2. 
+1. volatile的属性在读和写之间建立一个happens-before关系，每次读都能看到上一次写的结果。
+2. fianl，在类的构造函数完成之前final变量一定被赋值了，所以final变量在被调用的时候一定是被赋值了的，而且是不可更改的，所以对所有的线程可见。
+3. 线程结束的时候，线程里的数据全部会写到主存中，线程是重量级的，有自己的栈，创建销毁是有代价的。
+4. CAS指令，现在的cpu提供了特殊的指令，允许算法执行读写操作，保证原子操作，而无需害怕其他线程同时修改变量。
 
 ## 3.编程验证normal var ,volaitle，synchronize,atomicLong ,LongAdder，这几种做法实现的计数器方法，在多线程情况下的性能，准确度
 
