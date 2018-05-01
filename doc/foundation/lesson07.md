@@ -274,6 +274,101 @@ ExecutorService调用结束后必须调用shutdown()方法关闭线程，否则m
 ![](img/lesson07-001.png)
 
 
+## fork-jion例子
+
+```
+package zhan.foundation.lesson07;
+
+import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.concurrent.RecursiveTask;
+import java.util.stream.IntStream;
+
+/**
+ * Created by Administrator on 2018/4/30 0030.
+ */
+public class ForkJoinDemo extends RecursiveTask<Integer> {
+
+    static private int[] array;
+    private int beg;
+    private int end;
+
+    public ForkJoinDemo(int[] array,int beg,int end){
+        super();
+        this.array = array;
+        this.beg = beg;
+        this.end = end;
+    }
+
+    @Override
+    protected Integer compute(){
+        int result = 0;
+        if(end - beg > 1){
+            int mid = (end + beg) / 2;
+            ForkJoinDemo f1 = new ForkJoinDemo(array,beg,mid);
+            ForkJoinDemo f2 = new ForkJoinDemo(array,mid,end);
+            invokeAll(f1,f2);
+           /* f1.fork();
+            f2.fork();*/
+            try {
+                result = f1.join() + f2.join();
+                System.out.println("f1.join() = " + f1.join() + ",f2.join() = " + f2.join() + ",result = " + result);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            result = count(array[beg]);
+            System.out.println("result = " + result);
+        }
+        return  result;
+    }
+
+    //统计一个整数中出现了几个1
+    public int count(int num){
+        String strNum = String.valueOf(num);
+        System.out.println("strNum = " + strNum);
+        return strNum.length() - strNum.replace("1","").length();
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        Random random = new Random();
+        array = new int[4];
+        IntStream.range(0,4).forEach(i->array[i] = random.nextInt(10000));
+        System.out.println("array.length = " + array.length);
+        ForkJoinPool pool = new ForkJoinPool();
+        ForkJoinDemo demo = new ForkJoinDemo(array,0,array.length);
+
+        Future<Integer> result = pool.submit(demo);
+        System.out.println(result.get());
+
+       /* Integer res = pool.invoke(demo);
+        System.out.println(res);*/
+    }
+}
+```
+
+输出:
+```
+array.length = 4
+strNum = 6690
+strNum = 9613
+strNum = 4146
+strNum = 3683
+result = 0
+result = 1
+result = 1
+result = 0
+f1.join() = 0,f2.join() = 1,result = 1
+f1.join() = 1,f2.join() = 0,result = 1
+f1.join() = 1,f2.join() = 1,result = 2
+2
+
+Process finished with exit code 0
+
+```
+
 
 ## 2.用线程池框架或者fork-jion框架实现一个并发的文件内容查找接口：
     public SearchResult searchInFiles(String key);
@@ -413,100 +508,150 @@ excutor.shutdown();   表示开始结束线程
 while(!excutor.isTerminated()){}  等待线程结束，然后获取fileMap里的值，如果没有等待，则main线程会早于线程池结束，fileMap为空。
 
 
- ### (2)fork-jion框架实现：
+### (2)fork-jion框架实现：
 ```
 package zhan.foundation.lesson07;
 
-import java.util.Random;
-import java.util.concurrent.ExecutionException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
-import java.util.stream.IntStream;
 
 /**
- * Created by Administrator on 2018/4/30 0030.
+ * Created by Administrator on 2018/5/1 0001.
  */
-public class ForkJoinDemo extends RecursiveTask<Integer> {
+public class Exercises0202  extends RecursiveTask<Integer> {
 
-    static private int[] array;
-    private int beg;
+    private static Map<String,String> fileMap = new HashMap<String,String>();
+    private static File[] files;
+    private static final String keyWords = "String";
+    int sum = 0;
+
+    private int start;
     private int end;
 
-    public ForkJoinDemo(int[] array,int beg,int end){
-        super();
-        this.array = array;
-        this.beg = beg;
+    public Exercises0202(int start,int end){
+        this.start = start;
         this.end = end;
     }
 
+
     @Override
     protected Integer compute(){
-        int result = 0;
-        if(end - beg > 1){
-            int mid = (end + beg) / 2;
-            ForkJoinDemo f1 = new ForkJoinDemo(array,beg,mid);
-            ForkJoinDemo f2 = new ForkJoinDemo(array,mid,end);
-            invokeAll(f1,f2);
-           /* f1.fork();
-            f2.fork();*/
-            try {
-                result = f1.join() + f2.join();
-                System.out.println("f1.join() = " + f1.join() + ",f2.join() = " + f2.join() + ",result = " + result);
-            } catch (Exception e) {
-                e.printStackTrace();
+        int allSum = 0;
+
+        if(end - start <= 2){
+            for(int i = start; i <= end; i++){
+                allSum = readFile(files[i],1);
             }
         }else{
-            result = count(array[beg]);
-            System.out.println("result = " + result);
+            int middle = (start + end) / 2;
+            Exercises0202 leftTask = new Exercises0202(start,middle);
+            Exercises0202 rightTask = new Exercises0202(middle + 1,end);
+            invokeAll(leftTask,rightTask);
+            try{
+                allSum = leftTask.get() + rightTask.get();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
-        return  result;
+        return allSum;
     }
 
-    //统计一个整数中出现了几个1
-    public int count(int num){
-        String strNum = String.valueOf(num);
-        System.out.println("strNum = " + strNum);
-        return strNum.length() - strNum.replace("1","").length();
+
+    public int readFile(File fileCurrent,int currentDeepth) {
+        int deeepth = currentDeepth;
+        if (deeepth > 4) {
+            //System.out.println("deeepth is 4 return");
+            return 0;
+        }
+        File[] files = fileCurrent.listFiles();
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    readFile(file, deeepth + 1);
+                } else {
+                    //获取扩展名
+                    String extendName = file.getName().substring(file.getName().lastIndexOf(".") + 1, file.getName().length());
+                    if ("java".equals(extendName)) {
+                        sum += countKeyWords(file.getAbsolutePath());
+                        System.out.println(Thread.currentThread().getName() + " file.getAbsolutePath() = " + file.getAbsolutePath() + " sum = " + sum);
+                    }
+                }
+            }
+        }
+        return sum;
     }
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-        Random random = new Random();
-        array = new int[4];
-        IntStream.range(0,4).forEach(i->array[i] = random.nextInt(10000));
-        System.out.println("array.length = " + array.length);
-        ForkJoinPool pool = new ForkJoinPool();
-        ForkJoinDemo demo = new ForkJoinDemo(array,0,array.length);
 
-        Future<Integer> result = pool.submit(demo);
-        System.out.println(result.get());
+    /**
+     * 查找关键字出现次数
+     * @param filePath
+     * @throws Exception
+     */
+    public int countKeyWords(String filePath){
+        int sum = 0;
+        try {
+            FileReader fileReader = new FileReader(filePath);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String line;
 
-       /* Integer res = pool.invoke(demo);
-        System.out.println(res);*/
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.contains(keyWords)) {
+                    sum += line.length() - line.replace(keyWords,"").length();
+                }
+            }
+            if (sum > 0) {
+                fileMap.put(filePath, String.valueOf(sum));
+            }
+            return sum;
+        }catch (Exception e){
+            e.printStackTrace();
+            return sum;
+        }
+    }
+
+    public static void main(String[] args) throws Exception{
+
+        files = new File("F:\\IdeaProjects").listFiles();
+        ForkJoinPool forkJoinPool = new ForkJoinPool();
+        Exercises0202 task = new Exercises0202(0,files.length - 1);
+        Future<Integer> allSum = forkJoinPool.submit(task);
+
+        System.out.println(keyWords + " 总共出现 " + allSum.get() + "次");
+
+        fileMap.entrySet().stream()
+                .sorted((m1,m2)->Integer.compare(Integer.parseInt(m2.getValue()),Integer.parseInt(m1.getValue())))
+                .forEach(m->System.out.println(m.getValue() + " 次出现在 " + m.getKey()));
+
     }
 }
-```
 
+
+```
 输出:
 ```
-array.length = 4
-strNum = 6690
-strNum = 9613
-strNum = 4146
-strNum = 3683
-result = 0
-result = 1
-result = 1
-result = 0
-f1.join() = 0,f2.join() = 1,result = 1
-f1.join() = 1,f2.join() = 0,result = 1
-f1.join() = 1,f2.join() = 1,result = 2
-2
-
-Process finished with exit code 0
-
+......
+ForkJoinPool-1-worker-3 file.getAbsolutePath() = F:\IdeaProjects\LearningLeader\src\p201612NoBlock\LocalCmandUtil.java sum = 2046
+ForkJoinPool-1-worker-3 file.getAbsolutePath() = F:\IdeaProjects\LearningLeader\src\p201612NoBlock\MainServer.java sum = 2052
+ForkJoinPool-1-worker-3 file.getAbsolutePath() = F:\IdeaProjects\LearningLeader\src\p201612NoBlock\MyNIORector.java sum = 2052
+ForkJoinPool-1-worker-3 file.getAbsolutePath() = F:\IdeaProjects\LearningLeader\src\p201612NoBlock\NIOAcceptor.java sum = 2052
+ForkJoinPool-1-worker-3 file.getAbsolutePath() = F:\IdeaProjects\LearningLeader\src\p201612NoBlock\TelnetIOHandler.java sum = 2076
+String 总共出现 3936次
+246 次出现在 F:\IdeaProjects\src\p201602\L004.java
+246 次出现在 F:\IdeaProjects\LearningLeader\src\p201602\L004.java
+144 次出现在 F:\IdeaProjects\src\p201607\L011.java
+144 次出现在 F:\IdeaProjects\LearningLeader\src\p201607\L011.java
+90 次出现在 F:\IdeaProjects\LearningLeader\src\p201608\L004.java
+90 次出现在 F:\IdeaProjects\test\src\Test1.java
+90 次出现在 F:\IdeaProjects\src\p201608\L004.java
+84 次出现在 F:\IdeaProjects\src\p201607\L012.java
+.......
 ```
- 
 
 ## 3.用fork-jion框架实现第二课第四题的编程计算，把握分割任务的粒度。
  
