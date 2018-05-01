@@ -41,7 +41,7 @@ public class Exercises02 {
                                 }else {
                                     String extendName = f.toFile().getName().substring(f.toFile().getName().lastIndexOf(".") + 1,f.toFile().getName().length());
                                     if("java".equals(extendName)){
-                                        System.out.println("file.getAbsolutePath() = " + f.toFile().getAbsolutePath());
+                                        System.out.println(Thread.currentThread().getName() + " file.getAbsolutePath() = " + f.toFile().getAbsolutePath());
                                         countKeyWords(f.toFile().getAbsolutePath());
                                     }
                                 }

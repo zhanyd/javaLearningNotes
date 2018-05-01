@@ -286,7 +286,7 @@ ExecutorService调用结束后必须调用shutdown()方法关闭线程，否则m
     其中 2次出现在yyy文件中
          3次出现在xxx文件中
  
- 线程程池框架：
+ ### (1)线程程池框架实现：
  ```
  package zhan.foundation.lesson07;
 
@@ -405,6 +405,7 @@ String 总共出现 634次
 24 次出现在 F:\IdeaProjects\src\p201607\L011.java
 24 次出现在 F:\IdeaProjects\LearningLeader\src\p201607\L011.java
 ...
+```
 
 注意：
 excutor.shutdown();   表示开始结束线程
@@ -412,6 +413,100 @@ excutor.shutdown();   表示开始结束线程
 while(!excutor.isTerminated()){}  等待线程结束，然后获取fileMap里的值，如果没有等待，则main线程会早于线程池结束，fileMap为空。
 
 
+ ### (2)fork-jion框架实现：
+```
+package zhan.foundation.lesson07;
+
+import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.concurrent.RecursiveTask;
+import java.util.stream.IntStream;
+
+/**
+ * Created by Administrator on 2018/4/30 0030.
+ */
+public class ForkJoinDemo extends RecursiveTask<Integer> {
+
+    static private int[] array;
+    private int beg;
+    private int end;
+
+    public ForkJoinDemo(int[] array,int beg,int end){
+        super();
+        this.array = array;
+        this.beg = beg;
+        this.end = end;
+    }
+
+    @Override
+    protected Integer compute(){
+        int result = 0;
+        if(end - beg > 1){
+            int mid = (end + beg) / 2;
+            ForkJoinDemo f1 = new ForkJoinDemo(array,beg,mid);
+            ForkJoinDemo f2 = new ForkJoinDemo(array,mid,end);
+            invokeAll(f1,f2);
+           /* f1.fork();
+            f2.fork();*/
+            try {
+                result = f1.join() + f2.join();
+                System.out.println("f1.join() = " + f1.join() + ",f2.join() = " + f2.join() + ",result = " + result);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            result = count(array[beg]);
+            System.out.println("result = " + result);
+        }
+        return  result;
+    }
+
+    //统计一个整数中出现了几个1
+    public int count(int num){
+        String strNum = String.valueOf(num);
+        System.out.println("strNum = " + strNum);
+        return strNum.length() - strNum.replace("1","").length();
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        Random random = new Random();
+        array = new int[4];
+        IntStream.range(0,4).forEach(i->array[i] = random.nextInt(10000));
+        System.out.println("array.length = " + array.length);
+        ForkJoinPool pool = new ForkJoinPool();
+        ForkJoinDemo demo = new ForkJoinDemo(array,0,array.length);
+
+        Future<Integer> result = pool.submit(demo);
+        System.out.println(result.get());
+
+       /* Integer res = pool.invoke(demo);
+        System.out.println(res);*/
+    }
+}
+```
+
+输出:
+```
+array.length = 4
+strNum = 6690
+strNum = 9613
+strNum = 4146
+strNum = 3683
+result = 0
+result = 1
+result = 1
+result = 0
+f1.join() = 0,f2.join() = 1,result = 1
+f1.join() = 1,f2.join() = 0,result = 1
+f1.join() = 1,f2.join() = 1,result = 2
+2
+
+Process finished with exit code 0
+
+```
+ 
 
 ## 3.用fork-jion框架实现第二课第四题的编程计算，把握分割任务的粒度。
  
