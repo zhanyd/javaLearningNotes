@@ -17,7 +17,7 @@ public class Exercises03_2 {
 	public static void main(String[] args) throws Exception {
 		long stratWriteTime = System.currentTimeMillis();
 		//writeToFileOutputStream("f:\\salaryWriterChannel.txt");
-		writeToFileOutputStreamBuffer("f:\\salaryWriterChannel.txt");
+		//writeToFileOutputStreamBuffer("f:\\salaryWriterChannel.txt");
 		long endWriteTime = System.currentTimeMillis();
         System.out.println("write cost : " + (endWriteTime - stratWriteTime));
         readFromBufferedReader("f:\\salaryWriterChannel.txt");
