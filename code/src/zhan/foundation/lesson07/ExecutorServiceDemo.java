@@ -17,7 +17,7 @@ public class ExecutorServiceDemo {
     static ExecutorService excutor = Executors.newFixedThreadPool(5);
 
     public static void main(String[] args) throws Exception{
-        List<Future<Long>> futureList =  Files.list(new File("D:/Downloads").toPath())
+       /* List<Future<Long>> futureList =  Files.list(new File("D:/Downloads").toPath())
                 .filter(s->!s.toFile().isDirectory())
                 .map(s->new Callable<Long>() {
                     public Long call() throws Exception{
@@ -39,7 +39,7 @@ public class ExecutorServiceDemo {
         streamSupplier.get().forEach(System.out::println);
         System.out.println("total:" + streamSupplier.get().sum());
         //excutor.shutdown();
-        System.out.println("end");
+        System.out.println("end");*/
     }
 
 
