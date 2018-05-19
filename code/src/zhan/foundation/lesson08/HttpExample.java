@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Exercises01 {
+public class HttpExample {
 
 	public static void main(String[] args) {
 		
@@ -54,9 +54,10 @@ public class Exercises01 {
 			fileIn.read(buf);
 			fileIn.close();
 			
-			String msg = new String(buf,"GBK");
+			String msg = new String(buf,"gb2312");
 			String response = "HTTP/1.1 200 ok\r\n";
 			response += "Server: zhanyd Server/0.1 \r\n";
+			response += "Content-Length: " + (msg.length()) + "\r\n";
 			response += "\r\n";
 			response += msg;
 			out.write(response.getBytes());
@@ -67,7 +68,7 @@ public class Exercises01 {
 			String msg = "Hello you connected me...";
 			String response = "HTTP/1.1 200 ok\r\n";
 			response += "Server: zhanyd Server/0.1 \r\n";
-			response += "Content-Length: " + (msg.length()-5) + "\r\n";
+			response += "Content-Length: " + (msg.length()) + "\r\n";
 			response += "\r\n";
 			response += msg;
 			out.write(response.getBytes());
