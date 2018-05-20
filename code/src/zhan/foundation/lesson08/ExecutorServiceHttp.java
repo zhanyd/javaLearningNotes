@@ -14,24 +14,28 @@ public class ExecutorServiceHttp {
     public static void main(String[] args) throws Exception{
         ExecutorService executorService = Executors.newFixedThreadPool(5);
         ServerSocket serverSocket = new ServerSocket(8080);
-        executorService.execute(new ServiceHttp(serverSocket));
+        while(true){
+            System.out.println(Thread.currentThread().getName() + " before serverSocket.accept()");
+            Socket socket = serverSocket.accept();
+            executorService.execute(new ServiceHttp(socket));
+        }
 
     }
 
 
     public static class ServiceHttp implements Runnable {
-        ServerSocket serverSocket;
+        Socket socket;
 
-        public ServiceHttp(ServerSocket serverSocket){
-            this.serverSocket = serverSocket;
+        public ServiceHttp(Socket socket){
+            this.socket = socket;
         }
 
         @Override
         public void run(){
             try{
-                while (true) {
-                    System.out.println(Thread.currentThread().getName() + " before serverSocket.accept()");
-                    Socket socket = serverSocket.accept();
+
+                   /* System.out.println(Thread.currentThread().getName() + " before serverSocket.accept()");
+                    Socket socket = serverSocket.accept();*/
                     System.out.println(Thread.currentThread().getName() + " Request: " + socket.toString() + " cooonected");
                     LineNumberReader in = new LineNumberReader(new InputStreamReader(socket.getInputStream()));
                     String lineInput;
@@ -48,7 +52,7 @@ public class ExecutorServiceHttp {
                             }
                         }
                     }
-                }
+
             }catch (Exception e){
                 e.printStackTrace();
             }
