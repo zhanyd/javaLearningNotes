@@ -1,7 +1,3 @@
-# 习题解答
-
-## 1 改为线程池来处理具体的读写事件，即收到Event事件后，包装为一个Runable对象，提交线程池去处理
-```
 package zhan.foundation.lesson09;
 
 import java.io.IOException;
@@ -130,6 +126,3 @@ public class NioThreadPool {
 	}
 
 }
-```
-
-## 2 学习ByteBuffer的用法，掌握其独特的特性
