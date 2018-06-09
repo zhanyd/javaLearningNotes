@@ -1,3 +1,65 @@
+# 习题解答
+
+## 1 实现一个简单的多线程能力的DirectByteBufferPool，里面存放DirectByteBuffer，结合TreeSet这种可以范围查询的数据结构，实现任意大小的ByteBuffer的分配复用能力，比如需要一个1024大小的ByteBuffer，则可以返回大于1024的某个最小的空闲ByteBuffer
+
+```
+package zhan.foundation.lesson10.pool;
+
+import java.nio.ByteBuffer;
+import java.util.TreeSet;
+
+public class DirectByteBufferPool {
+
+	private static ByteBuffer largeBuffer;
+	private static TreeSet<ByteBuffer> bufferSet;
+	
+	public static void main(String[] args) {
+		init(100,10000);
+		
+		ByteBuffer byteBuffer = allocateBuffer(200);
+		System.out.println("分配的 buffer capacity = " + byteBuffer.capacity());
+	}
+	
+	/**
+	 * 分配ByteBuffer池
+	 * @param baseSize
+	 * @param bufferLength
+	 */
+	public static void init(int baseSize,int bufferLength){
+		bufferSet = new TreeSet<ByteBuffer>();
+		largeBuffer = ByteBuffer.allocateDirect(bufferLength);
+		
+		int position = 0;
+		int multiple = 1;
+		while(bufferLength >= position + baseSize * multiple){
+			largeBuffer.position(position);
+			largeBuffer.limit(position + baseSize * multiple);
+			bufferSet.add(largeBuffer.slice());
+			position = largeBuffer.limit();
+			//按2倍的大小增长
+			multiple = multiple * 2;
+		}
+		
+		bufferSet.stream().forEach(b->System.out.println("capacity = " + b.capacity()));
+		System.out.println("还剩  " + (largeBuffer.capacity() - largeBuffer.limit()) + " 空间未分配");
+	}
+	
+	
+	/**
+	 * 分配byteBuffer
+	 * @param bufferSize
+	 * @return
+	 */
+	public static ByteBuffer allocateBuffer(int bufferSize){
+		ByteBuffer requiredBuffer = ByteBuffer.allocateDirect(bufferSize);
+		ByteBuffer returnBuffer = bufferSet.ceiling(requiredBuffer);
+		return returnBuffer;
+	}
+}
+```
+
+## 2尝试采用FileChannel的transfer方法，完成大文件的传输（仅限于比较大的文本文件，模拟生成100M的大文件， 因为二进制文件需要Base 64编码，无法用transfer），即新增一个命令 download xxxx
+```
 package zhan.foundation.lesson10;
 
 import java.io.IOException;
@@ -144,3 +206,4 @@ public class IOHandler implements Runnable{
 	
 	
 }
+```

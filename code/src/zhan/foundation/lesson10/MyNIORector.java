@@ -12,7 +12,7 @@ public class MyNIORector extends Thread{
 	
 	final Selector selector;
 	final ServerSocketChannel serverSocketChannel;
-	
+
 	public MyNIORector(int bindPort) throws IOException{
 		selector = Selector.open();
 		serverSocketChannel = ServerSocketChannel.open();
