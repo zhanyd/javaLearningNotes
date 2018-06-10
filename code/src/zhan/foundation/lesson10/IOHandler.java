@@ -7,6 +7,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Base64;
 
 public class IOHandler implements Runnable{
 
@@ -115,7 +116,7 @@ public class IOHandler implements Runnable{
 			writeBuffer.put("\r\nTelnet>".getBytes());
 			writeBuffer.flip();
 			writeToChannel();
-		}else if(readedLine.startsWith("download")){
+		}else if(readedLine.startsWith("copy")){
 			RandomAccessFile fromFile = new RandomAccessFile("F://origin.txt","rw");
 			FileChannel fromChannel = fromFile.getChannel();
 			
@@ -131,6 +132,23 @@ public class IOHandler implements Runnable{
 			fromFile.close();
 			toChannel.close();
 			toFile.close();
+		}else if(readedLine.startsWith("download")){
+			RandomAccessFile fromFile = new RandomAccessFile("F://Sybase_ase157_winx86.zip","rw");
+			FileChannel fromChannel = fromFile.getChannel();
+			Base64.Encoder encoder = Base64.getEncoder();
+			ByteBuffer encodBuffer;
+			long size = fromChannel.size();
+			long postion = 0;
+			while(postion < size){
+				int readnum = fromChannel.read(writeBuffer);
+				postion += readnum;
+				writeBuffer.flip();
+				encodBuffer = encoder.encode(writeBuffer);
+				socketChannel.write(encodBuffer);
+				writeBuffer.clear();
+			}
+			fromChannel.close();
+			fromFile.close();
 		}
 		else{
 			for(int i = 0; i < writeBuffer.capacity() - 10; i++){
