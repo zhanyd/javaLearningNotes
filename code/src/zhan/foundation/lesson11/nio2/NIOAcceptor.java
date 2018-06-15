@@ -15,6 +15,7 @@ public class NIOAcceptor extends Thread{
 		this.reactors = reactors;
 		serverSocketChannel = ServerSocketChannel.open();
 		serverSocketChannel.configureBlocking(true);
+		//serverSocketChannel.configureBlocking(false);
 		InetSocketAddress address = new InetSocketAddress(bindPort);
 		serverSocketChannel.socket().bind(address);
 		System.out.println("started at " + address);

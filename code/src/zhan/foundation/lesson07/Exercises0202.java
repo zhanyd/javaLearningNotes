@@ -16,7 +16,7 @@ public class Exercises0202  extends RecursiveTask<Integer> {
 
     private static Map<String,String> fileMap = new HashMap<String,String>();
     private static File[] files;
-    private static final String keyWords = "String";
+    private static String keyWords = "String";
     int sum = 0;
 
     private int start;
@@ -25,6 +25,14 @@ public class Exercises0202  extends RecursiveTask<Integer> {
     public Exercises0202(int start,int end){
         this.start = start;
         this.end = end;
+    }
+    
+    
+    public Exercises0202(int start,int end,File[] files,String keyWords){
+        this.start = start;
+        this.end = end;
+        this.files = files;
+        this.keyWords = keyWords;
     }
 
 
@@ -105,7 +113,7 @@ public class Exercises0202  extends RecursiveTask<Integer> {
 
     public static void main(String[] args) throws Exception{
 
-        files = new File("F:\\IdeaProjects").listFiles();
+        files = new File("E:\\workspace").listFiles();
         ForkJoinPool forkJoinPool = new ForkJoinPool();
         Exercises0202 task = new Exercises0202(0,files.length - 1);
         Future<Integer> allSum = forkJoinPool.submit(task);
